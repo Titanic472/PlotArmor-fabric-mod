@@ -1,0 +1,19 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        " #S",
+        "# S",
+        " #S"
+    ],
+    "key": {
+        "#": {
+            "item": "minecraft:breeze_rod"
+        },
+        "S": {
+            "item": "minecraft:string"
+        }
+    },
+    "result": {
+        "id":"plotarmor:breeze_bow"
+    }
+}

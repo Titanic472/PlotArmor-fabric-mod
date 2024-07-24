@@ -1,0 +1,37 @@
+{
+    "type": "minecraft:crafting_shapeless",
+    "ingredients": [
+    {
+      "item": "minecraft:potion",
+      "data": {
+        "Potion": "plotarmor:essence_of_frost"
+      }
+    },
+    {
+      "item": "minecraft:potion",
+      "data": {
+        "Potion": "plotarmor:essence_of_the_sea"
+      }
+    },
+    {
+      "item": "minecraft:potion",
+      "data": {
+        "Potion": "plotarmor:essence_of_depths"
+      }
+    },
+    {
+      "item": "minecraft:potion",
+      "data": {
+        "Potion": "plotarmor:essence_of_wealth"
+      }
+    },
+    {
+      "item": "minecraft:ender_eye"
+    }
+    ],
+    "result": {
+      "id": "plotarmor:magical_brew",
+      "count": 1
+    }
+}
+  

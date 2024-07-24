@@ -1,0 +1,18 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+      "XXX",
+      "XXX",
+      "XXX"
+    ],
+    "key": {
+      "X": {
+        "item": "minecraft:blue_ice"
+      }
+    },
+    "result": {
+      "id": "plotarmor:packed_blue_ice",
+      "count": 1
+    }
+}
+  

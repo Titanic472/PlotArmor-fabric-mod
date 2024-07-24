@@ -1,0 +1,10 @@
+modLoader="javafml"
+loaderVersion="[1.21,)"
+license="MIT"
+[[mods]]
+modId="plotarmor"
+version="1.0.0"
+displayName="Stachventure"
+entrypoints {
+  main = ["com.example.plotarmor.PlotArmor"]
+}
