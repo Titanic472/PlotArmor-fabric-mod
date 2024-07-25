@@ -6,7 +6,8 @@
     "item.minecraft.potion.effect.essence_of_frost": "Essence of Frost",
     "item.minecraft.potion.effect.essence_of_the_sea": "Essence of the Sea",
     "item.minecraft.potion.effect.essence_of_depths": "Essence of Depths",
-    "item.minecraft.potion.effect.essence_of_wealth": "Essence of Wealth"
-    
+    "item.minecraft.potion.effect.essence_of_wealth": "Essence of Wealth",
+    "commands.plotarmor.setcheck.success": "Check block position set to %s for block type %s",
+    "commands.plotarmor.setchamber.success": "Chamber coordinates set from %s to %s"
 }
   
