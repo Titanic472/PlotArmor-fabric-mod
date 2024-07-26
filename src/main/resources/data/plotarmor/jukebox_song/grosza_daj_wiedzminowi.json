@@ -1,0 +1,8 @@
+{
+    "comparator_output":15,
+    "length_in_seconds": 187.0,
+    "description":"Grosza daj Wiedźminowi!",
+    "sound_event":{
+        "sound_id":"plotarmor:grosza_daj_wiedzminowi"
+    }
+}

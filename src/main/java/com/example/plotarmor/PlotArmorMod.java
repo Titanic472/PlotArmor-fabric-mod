@@ -35,7 +35,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraft.registry.*;
-import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -69,16 +68,13 @@ public class PlotArmorMod implements ModInitializer {
 
    public static final SoundEvent GROSZA_DAJ_WIEDZMINOWI = registerSound("grosza_daj_wiedzminowi");
    public static final SoundEvent KOTLOK_DEJ_HEKSEROWI = registerSound("kotlok_dej_hekserowi");
-   public static final RegistryEntry.Reference<SoundEvent> GROSZA_DAJ_WIEDZMINOWI_REF = Registry.registerReference(Registries.SOUND_EVENT, GROSZA_DAJ_WIEDZMINOWI.getId(), GROSZA_DAJ_WIEDZMINOWI);
-   public static final RegistryEntry.Reference<SoundEvent> KOTLOK_DEJ_HEKSEROWI_REF = Registry.registerReference(Registries.SOUND_EVENT, KOTLOK_DEJ_HEKSEROWI.getId(), KOTLOK_DEJ_HEKSEROWI);;
 
-   public static final Item GROSZA_DAJ_WIEDZMINOWI_MUSIC_DISC = new CustomMusicDiscItem(15, GROSZA_DAJ_WIEDZMINOWI, new Item.Settings().maxCount(1).rarity(Rarity.RARE).jukeboxPlayable(PlotArmorMusicDiscs.GROSZA_DAJ_WIEDZMINOWI_JUKEBOX));
-   public static final Item KOTLOK_DEJ_HEKSEROWI_MUSIC_DISC = new CustomMusicDiscItem(15, KOTLOK_DEJ_HEKSEROWI, new Item.Settings().maxCount(1).rarity(Rarity.RARE).jukeboxPlayable(PlotArmorMusicDiscs.KOTLOK_DEJ_HEKSEROWI_JUKEBOX));
+   public static final Item GROSZA_DAJ_WIEDZMINOWI_MUSIC_DISC = new Item(new Item.Settings().maxCount(1).rarity(Rarity.RARE).jukeboxPlayable(RegistryKey.of(RegistryKeys.JUKEBOX_SONG, GROSZA_DAJ_WIEDZMINOWI.getId())));//.jukeboxPlayable(PlotArmorMusicDiscs.GROSZA_DAJ_WIEDZMINOWI_JUKEBOX));
+   public static final Item KOTLOK_DEJ_HEKSEROWI_MUSIC_DISC = new Item(new Item.Settings().maxCount(1).rarity(Rarity.RARE).jukeboxPlayable(RegistryKey.of(RegistryKeys.JUKEBOX_SONG, KOTLOK_DEJ_HEKSEROWI.getId())));
 
    public static ServerWorld GlobalServerWorld = null;
 
    private static final long INITIAL_DEBUFF_INTERVAL = 20 * 60 * 20;//minutes to minecraft ticks
-
    @Override
    public void onInitialize() {
       LOGGER.info("LOADING Plot Armor");
@@ -95,6 +91,7 @@ public class PlotArmorMod implements ModInitializer {
       Registry.register(Registries.POTION, Identifier.of("plotarmor", "essence_of_the_sea"), ESSENCE_OF_THE_SEA);
       Registry.register(Registries.POTION, Identifier.of("plotarmor", "essence_of_depths"), ESSENCE_OF_DEPTHS);
       Registry.register(Registries.POTION, Identifier.of("plotarmor", "essence_of_wealth"), ESSENCE_OF_WEALTH);
+
       
       //   Registry.register(Registries.ITEM, Identifier.of("plotarmor", "essence_of_frost"), ESSENCE_OF_FROST);
       //   Registry.register(Registries.ITEM, Identifier.of("plotarmor", "essence_of_the_sea"), ESSENCE_OF_THE_SEA);

@@ -1,0 +1,8 @@
+{
+    "comparator_output":15,
+    "length_in_seconds": 187.0,
+    "description":"Kotlok dej Hekserowi!",
+    "sound_event":{
+        "sound_id":"plotarmor:kotlok_dej_hekserowi"
+    }
+}
