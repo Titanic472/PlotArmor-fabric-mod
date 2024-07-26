@@ -22,19 +22,19 @@ public class PlayerArmorState extends PersistentState {
     public static PlayerArmorState createFromNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         PlayerArmorState state = new PlayerArmorState();
         NbtCompound armorTimers = tag.getCompound("ArmorTimers");
-        for (String key : armorTimers.getKeys()) {
-            state.playerArmorTimers.put(UUID.fromString(key), armorTimers.getLong(key));
-        }
+        armorTimers.getKeys().forEach(key -> {
+            state.playerArmorTimers.put(UUID.fromString(key), armorTimers.getCompound(key).getLong("ArmorTimer"));
+        });
 
         NbtCompound healthDebuffs = tag.getCompound("HealthDebuffs");
-        for (String key : healthDebuffs.getKeys()) {
-            state.playerHealthDebuffs.put(UUID.fromString(key), healthDebuffs.getInt(key));
-        }
+        healthDebuffs.getKeys().forEach(key -> {
+            state.playerHealthDebuffs.put(UUID.fromString(key), healthDebuffs.getCompound(key).getInt("HealthDebuff"));
+        });
 
         NbtCompound offlineTimers = tag.getCompound("OfflineTimers");
-        for (String key : offlineTimers.getKeys()) {
-            state.playerOfflineTimes.put(UUID.fromString(key), offlineTimers.getLong("OfflineTimer"));
-        }
+        offlineTimers.getKeys().forEach(key -> {
+            state.playerOfflineTimes.put(UUID.fromString(key), offlineTimers.getCompound(key).getLong("OfflineTimer"));
+        });
 
         return state;
     }

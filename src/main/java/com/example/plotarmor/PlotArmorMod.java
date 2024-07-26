@@ -12,7 +12,6 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.registry.FabricBrewingRecipeRegistryBuilder;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.item.ModelPredicateProviderRegistry;
 import net.minecraft.command.argument.BlockPosArgumentType;
 import net.minecraft.command.argument.BlockStateArgument;
 import net.minecraft.command.argument.BlockStateArgumentType;
@@ -25,9 +24,9 @@ import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.PotionItem;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.Potions;
 import net.minecraft.util.ActionResult;
@@ -43,16 +42,21 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.*;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PlotArmorMod implements ModInitializer {
    public static final Logger LOGGER = LoggerFactory.getLogger("PlotArmor");
+
+   public final Map<UUID, Long> iframes = new HashMap<>();
 
    public static final Item BREEZE_BOW = new BreezeBowItem(new Item.Settings().maxCount(1).rarity(Rarity.EPIC).fireproof().maxDamage(96));
    public static final Item PACKED_BLUE_ICE = new Item(new Item.Settings().rarity(Rarity.UNCOMMON));
@@ -65,22 +69,22 @@ public class PlotArmorMod implements ModInitializer {
 
    public static ServerWorld GlobalServerWorld = null;
 
-   private static final long INITIAL_DEBUFF_INTERVAL = TimeUnit.MINUTES.toMillis(20);
+   private static final long INITIAL_DEBUFF_INTERVAL = 20 * 60 * 20;//minutes to minecraft ticks
 
    @Override
    public void onInitialize() {
-
+      LOGGER.info("LOADING Plot Armor");
       Registry.register(Registries.ITEM, Identifier.of("plotarmor", "breeze_bow"), BREEZE_BOW);
       Registry.register(Registries.ITEM, Identifier.of("plotarmor", "packed_blue_ice"), PACKED_BLUE_ICE);
       Registry.register(Registries.ITEM, Identifier.of("plotarmor", "magical_brew"), MAGICAL_BREW);
       Registry.register(Registries.ITEM, Identifier.of("plotarmor", "charged_magical_brew"), CHARGED_MAGICAL_BREW);
 
-      LOGGER.info("\nLOADING ********\n**********************\n*************************\n**************************\n************************");
+      
       Registry.register(Registries.POTION, Identifier.of("plotarmor", "essence_of_frost"), ESSENCE_OF_FROST);
       Registry.register(Registries.POTION, Identifier.of("plotarmor", "essence_of_the_sea"), ESSENCE_OF_THE_SEA);
       Registry.register(Registries.POTION, Identifier.of("plotarmor", "essence_of_depths"), ESSENCE_OF_DEPTHS);
       Registry.register(Registries.POTION, Identifier.of("plotarmor", "essence_of_wealth"), ESSENCE_OF_WEALTH);
-      LOGGER.info("\nLOADED ********\n**********************\n*************************\n**************************\n************************");
+      
       //   Registry.register(Registries.ITEM, Identifier.of("plotarmor", "essence_of_frost"), ESSENCE_OF_FROST);
       //   Registry.register(Registries.ITEM, Identifier.of("plotarmor", "essence_of_the_sea"), ESSENCE_OF_THE_SEA);
       //   Registry.register(Registries.ITEM, Identifier.of("plotarmor", "essence_of_depths"), ESSENCE_OF_DEPTHS);
@@ -91,7 +95,6 @@ public class PlotArmorMod implements ModInitializer {
       FabricBrewingRecipeRegistryBuilder.BUILD.register(builder -> {builder.registerPotionRecipe(Potions.THICK, Items.CONDUIT, Registries.POTION.getEntry(ESSENCE_OF_THE_SEA));});
       FabricBrewingRecipeRegistryBuilder.BUILD.register(builder -> {builder.registerPotionRecipe(Potions.THICK, Items.SCULK_CATALYST, Registries.POTION.getEntry(ESSENCE_OF_DEPTHS));});
       FabricBrewingRecipeRegistryBuilder.BUILD.register(builder -> {builder.registerPotionRecipe(Potions.THICK, Items.NETHERITE_BLOCK, Registries.POTION.getEntry(ESSENCE_OF_WEALTH));});
-      registerModelPredicateProviders();
 
       CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
          dispatcher.register(CommandManager.literal("setcheck")
@@ -146,7 +149,7 @@ public class PlotArmorMod implements ModInitializer {
              
              if (persistentState.playerArmorTimers.containsKey(playerId)) {
                  LOGGER.info("last timer:" + persistentState.playerArmorTimers.get(playerId));
-                 persistentState.playerArmorTimers.put(playerId, persistentState.playerArmorTimers.get(playerId) + TimeUnit.MILLISECONDS.toMinutes(offlineTime));
+                 persistentState.playerArmorTimers.put(playerId, persistentState.playerArmorTimers.get(playerId) + offlineTime);
                  LOGGER.info("new timer:" + persistentState.playerArmorTimers.get(playerId));
              }
          }
@@ -161,6 +164,7 @@ public class PlotArmorMod implements ModInitializer {
          LOGGER.info("\nlogout:\n" + playerId + "\n**********");
          LOGGER.info("\nlogged out with time:" + persistentState.playerOfflineTimes.get(playerId));
      });
+     LOGGER.info("LOADED Plot Armor");
       //ServerWorldEvents.UNLOAD.register(this::onWorldUnload);
   }
   
@@ -176,9 +180,8 @@ public class PlotArmorMod implements ModInitializer {
         long currentTime = world.getTime();
         for (ServerPlayerEntity player : world.getPlayers()) {
             UUID playerId = player.getUuid();
-
             if (player.getCommandTags().contains("EverDrunkChargedBrew")) {
-                //LOGGER.info("ignoring debuff counter" + playerId);
+                //LOGGER.info("ignoring debuff counter for: " + playerId);
                 continue;
             }
 
@@ -186,8 +189,10 @@ public class PlotArmorMod implements ModInitializer {
                 long lastDebuffTime = persistentState.playerArmorTimers.get(playerId);
                 long interval = INITIAL_DEBUFF_INTERVAL * (1L << persistentState.playerHealthDebuffs.getOrDefault(playerId, 0));
 
+                if(!player.hasStatusEffect(StatusEffects.WEAKNESS) && persistentState.playerHealthDebuffs.getOrDefault(playerId, 0)>=3)applyDebuffs(player, false);
+
                 if (currentTime - lastDebuffTime >= interval) {
-                    applyDebuffs(player);
+                    applyDebuffs(player, true);
                     persistentState.playerArmorTimers.put(playerId, currentTime);
                 }
             }
@@ -195,7 +200,9 @@ public class PlotArmorMod implements ModInitializer {
             if (isWearingFullChainmail(player)) {
                 if (!persistentState.playerArmorTimers.containsKey(playerId)) {
                     LOGGER.info("adding timer for:" + playerId);
+                    //LOGGER.info("Default timer is:" + INITIAL_DEBUFF_INTERVAL);
                     persistentState.playerArmorTimers.put(playerId, currentTime);
+                    player.getWorld().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ENTITY_ELDER_GUARDIAN_CURSE, SoundCategory.PLAYERS, 2.0F, 1.0F);
                 }
             }
         }
@@ -205,7 +212,6 @@ public class PlotArmorMod implements ModInitializer {
         if (entity instanceof ServerPlayerEntity player) {
             if (isWearingFullChainmail(player)) {
                 transferDamageToArmor(player, amount);
-                LOGGER.info("ignoring damage");
                 return false;
             }
         }
@@ -213,15 +219,16 @@ public class PlotArmorMod implements ModInitializer {
     }
 
     private void transferDamageToArmor(ServerPlayerEntity player, float damage) {
-        for (ItemStack armorItem : player.getArmorItems()) {
-            if (armorItem.isDamageable()) {
-                int armorDamage = MathHelper.ceil(damage);
-                armorItem.damage(armorDamage, player, EquipmentSlot.HEAD);
-                armorItem.damage(armorDamage, player, EquipmentSlot.CHEST);
-                armorItem.damage(armorDamage, player, EquipmentSlot.LEGS);
-                armorItem.damage(armorDamage, player, EquipmentSlot.FEET);
-                break;
-            }
+        long currentTime = GlobalServerWorld.getTime();
+        if(!iframes.containsKey(player.getUuid()) || iframes.get(player.getUuid())+20 <= currentTime){
+            int armorDamage = Math.max(MathHelper.ceil(damage/4F), 0);
+            player.getInventory().getArmorStack(3).damage(armorDamage, player, EquipmentSlot.HEAD);
+            player.getInventory().getArmorStack(2).damage(armorDamage, player, EquipmentSlot.CHEST);
+            player.getInventory().getArmorStack(1).damage(armorDamage, player, EquipmentSlot.LEGS);
+            player.getInventory().getArmorStack(0).damage(armorDamage, player, EquipmentSlot.FEET);
+            //LOGGER.info("damaging armor, time: " + currentTime + " last damage time: " + iframes.get(player.getUuid()));
+            iframes.put(player.getUuid(), currentTime);
+            
         }
     }
 
@@ -232,27 +239,28 @@ public class PlotArmorMod implements ModInitializer {
          if (!player.getCommandTags().contains("EverDrunkChargedBrew")) {
             PlayerArmorState persistentState = PlayerArmorState.getServerState(GlobalServerWorld.getServer());
             if (persistentState.playerHealthDebuffs.containsKey(playerId)) {
-               applyDebuffs((ServerPlayerEntity) player);
-            } else {
-               persistentState.playerArmorTimers.put(playerId, world.getTime());
-               persistentState.playerHealthDebuffs.put(playerId, 0);
+               applyDebuffs((ServerPlayerEntity) player, false);
             }
          }
       }
   }
 
-    private void applyDebuffs(ServerPlayerEntity player) {
+    private void applyDebuffs(ServerPlayerEntity player, Boolean IncreaseLevel) {
         PlayerArmorState persistentState = PlayerArmorState.getServerState(GlobalServerWorld.getServer());
         UUID playerId = player.getUuid();
-        int debuffLevel = persistentState.playerHealthDebuffs.getOrDefault(playerId, 0) + 1;
-        LOGGER.info("debuffs time, lvl:" + debuffLevel);
-        player.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH).setBaseValue(Math.max(2.0, player.getAttributeBaseValue(EntityAttributes.GENERIC_MAX_HEALTH) - 2.0));
-        if (debuffLevel % 3 == 0) {
+        int debuffLevel = persistentState.playerHealthDebuffs.getOrDefault(playerId, 0);
+        if(IncreaseLevel)debuffLevel += 1;
+        //LOGGER.info("debuffs time, lvl:" + debuffLevel);
+        player.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH).setBaseValue(Math.max(2.0, 20f - debuffLevel*2f));
+        if (debuffLevel >= 3) {
             player.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, Integer.MAX_VALUE, (debuffLevel / 3) - 1, true, false));
         }
-        if (debuffLevel % 4 == 0) {
+        if (debuffLevel >= 4) {
             player.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, Integer.MAX_VALUE, (debuffLevel / 4) - 1, true, false));
         }
+
+        player.getWorld().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ENTITY_WITHER_HURT, SoundCategory.PLAYERS, 2.0F, 1.0F);
+        player.getServerWorld().spawnParticles(ParticleTypes.FALLING_OBSIDIAN_TEAR, player.getX(), player.getY()+1, player.getZ(), 150, 0.75, 1, 0.75, 0.1);
 
         persistentState.playerHealthDebuffs.put(playerId, debuffLevel);
     }
@@ -279,20 +287,6 @@ public class PlotArmorMod implements ModInitializer {
          BlockState blockState = world.getBlockState(state.getCheckBlockPos());
          state.setCheckBlockMatched(blockState.getBlock().equals(state.getCheckBlockType()));
       }
-          LOGGER.info("CheckBlockMatched: " + state.isCheckBlockMatched());
-   }
-
-   public static void registerModelPredicateProviders() {
-      ModelPredicateProviderRegistry.register(BREEZE_BOW, Identifier.ofVanilla("pull"), (stack, world, entity, seed) -> {
-         if(entity == null) {
-            return 0.0F;
-            } else {
-            return entity.getActiveItem() != stack ? 0.0F : (float)(stack.getMaxUseTime(entity) - entity.getItemUseTimeLeft()) / 20.0F;
-         }
-      });
-   
-      ModelPredicateProviderRegistry.register(BREEZE_BOW, Identifier.ofVanilla("pulling"), (stack, world, entity, seed) -> {
-         return entity != null && entity.isUsingItem() && entity.getActiveItem() == stack ? 1.0F : 0.0F;
-      });
+          //LOGGER.info("CheckBlockMatched: " + state.isCheckBlockMatched());
    }
 }

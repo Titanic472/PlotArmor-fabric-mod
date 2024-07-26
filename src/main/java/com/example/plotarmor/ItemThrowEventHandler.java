@@ -26,7 +26,7 @@ public class ItemThrowEventHandler implements ServerTickEvents.EndWorldTick{
                             world.spawnParticles(ParticleTypes.ENCHANTED_HIT, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), 10, 0.5, 0.5, 0.5, 0.1);
 
                             // Проигрывание звука
-                            world.playSound(null, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, itemEntity.getSoundCategory(), 1.0F, 1.0F);
+                            world.playSound(null, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, itemEntity.getSoundCategory(), 2.0F, 1.0F);
                     }
                 }
             }
