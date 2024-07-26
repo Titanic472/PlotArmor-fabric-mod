@@ -226,8 +226,12 @@ public class PlotArmorMod implements ModInitializer {
     private boolean onPlayerDamage(LivingEntity entity, DamageSource source, float amount) {
         if (entity instanceof ServerPlayerEntity player) {
             if (isWearingFullChainmail(player)) {
-                transferDamageToArmor(player, amount);
-                return false;
+                long currentTime = GlobalServerWorld.getTime();
+                if(!iframes.containsKey(player.getUuid()) || iframes.get(player.getUuid())+460 <= currentTime || iframes.get(player.getUuid())+60 >= currentTime){
+                    transferDamageToArmor(player, amount);
+                    return false;
+                }
+                else return true;
             }
         }
         return true;
@@ -235,16 +239,13 @@ public class PlotArmorMod implements ModInitializer {
 
     private void transferDamageToArmor(ServerPlayerEntity player, float damage) {
         long currentTime = GlobalServerWorld.getTime();
-        if(!iframes.containsKey(player.getUuid()) || iframes.get(player.getUuid())+20 <= currentTime){
-            int armorDamage = Math.max(MathHelper.ceil(damage/4F), 0);
-            player.getInventory().getArmorStack(3).damage(armorDamage, player, EquipmentSlot.HEAD);
-            player.getInventory().getArmorStack(2).damage(armorDamage, player, EquipmentSlot.CHEST);
-            player.getInventory().getArmorStack(1).damage(armorDamage, player, EquipmentSlot.LEGS);
-            player.getInventory().getArmorStack(0).damage(armorDamage, player, EquipmentSlot.FEET);
-            //LOGGER.info("damaging armor, time: " + currentTime + " last damage time: " + iframes.get(player.getUuid()));
-            iframes.put(player.getUuid(), currentTime);
-            
-        }
+        int armorDamage = Math.max(MathHelper.ceil(damage/4F), 0);
+        player.getInventory().getArmorStack(3).damage(armorDamage, player, EquipmentSlot.HEAD);
+        player.getInventory().getArmorStack(2).damage(armorDamage, player, EquipmentSlot.CHEST);
+        player.getInventory().getArmorStack(1).damage(armorDamage, player, EquipmentSlot.LEGS);
+        player.getInventory().getArmorStack(0).damage(armorDamage, player, EquipmentSlot.FEET);
+        //LOGGER.info("damaging armor, time: " + currentTime + " last damage time: " + iframes.get(player.getUuid()));
+        if(!iframes.containsKey(player.getUuid()) || iframes.get(player.getUuid())+460 <= currentTime)iframes.put(player.getUuid(), currentTime); 
     }
 
     private void onPlayerDeath(ServerWorld world, Entity killer, LivingEntity entity) {
