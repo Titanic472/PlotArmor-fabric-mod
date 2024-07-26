@@ -2,10 +2,13 @@ package com.example.plotarmor;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.entity.event.v1.ServerEntityCombatEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.registry.FabricBrewingRecipeRegistryBuilder;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -13,10 +16,16 @@ import net.minecraft.client.item.ModelPredicateProviderRegistry;
 import net.minecraft.command.argument.BlockPosArgumentType;
 import net.minecraft.command.argument.BlockStateArgument;
 import net.minecraft.command.argument.BlockStateArgumentType;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.PotionItem;
 import net.minecraft.potion.Potion;
@@ -27,12 +36,17 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraft.registry.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.*;
+
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +54,7 @@ import org.slf4j.LoggerFactory;
 public class PlotArmorMod implements ModInitializer {
    public static final Logger LOGGER = LoggerFactory.getLogger("PlotArmor");
 
-   public static final Item BREEZE_BOW = new BreezeBowItem(new Item.Settings().maxCount(1).rarity(Rarity.EPIC).fireproof());
+   public static final Item BREEZE_BOW = new BreezeBowItem(new Item.Settings().maxCount(1).rarity(Rarity.EPIC).fireproof().maxDamage(96));
    public static final Item PACKED_BLUE_ICE = new Item(new Item.Settings().rarity(Rarity.UNCOMMON));
    public static final Potion ESSENCE_OF_FROST = new Potion(new StatusEffectInstance(StatusEffects.SLOWNESS, 72000, 4), new StatusEffectInstance(StatusEffects.MINING_FATIGUE, 72000, 4));// Registry.register(Registries.POTION, );
    public static final Potion ESSENCE_OF_THE_SEA =  new Potion(new StatusEffectInstance(StatusEffects.CONDUIT_POWER, 72000, 0));
@@ -51,6 +65,8 @@ public class PlotArmorMod implements ModInitializer {
 
    public static ServerWorld GlobalServerWorld = null;
 
+   private static final long INITIAL_DEBUFF_INTERVAL = TimeUnit.MINUTES.toMillis(20);
+
    @Override
    public void onInitialize() {
 
@@ -59,12 +75,12 @@ public class PlotArmorMod implements ModInitializer {
       Registry.register(Registries.ITEM, Identifier.of("plotarmor", "magical_brew"), MAGICAL_BREW);
       Registry.register(Registries.ITEM, Identifier.of("plotarmor", "charged_magical_brew"), CHARGED_MAGICAL_BREW);
 
-      LOGGER.info("LOADING ********\n**********************\n*************************\n**************************\n************************");
+      LOGGER.info("\nLOADING ********\n**********************\n*************************\n**************************\n************************");
       Registry.register(Registries.POTION, Identifier.of("plotarmor", "essence_of_frost"), ESSENCE_OF_FROST);
       Registry.register(Registries.POTION, Identifier.of("plotarmor", "essence_of_the_sea"), ESSENCE_OF_THE_SEA);
       Registry.register(Registries.POTION, Identifier.of("plotarmor", "essence_of_depths"), ESSENCE_OF_DEPTHS);
       Registry.register(Registries.POTION, Identifier.of("plotarmor", "essence_of_wealth"), ESSENCE_OF_WEALTH);
-      LOGGER.info("LOADED ********\n**********************\n*************************\n**************************\n************************");
+      LOGGER.info("\nLOADED ********\n**********************\n*************************\n**************************\n************************");
       //   Registry.register(Registries.ITEM, Identifier.of("plotarmor", "essence_of_frost"), ESSENCE_OF_FROST);
       //   Registry.register(Registries.ITEM, Identifier.of("plotarmor", "essence_of_the_sea"), ESSENCE_OF_THE_SEA);
       //   Registry.register(Registries.ITEM, Identifier.of("plotarmor", "essence_of_depths"), ESSENCE_OF_DEPTHS);
@@ -113,8 +129,41 @@ public class PlotArmorMod implements ModInitializer {
       });
       ServerWorldEvents.LOAD.register(this::onWorldLoad);
       ServerTickEvents.END_WORLD_TICK.register(new ItemThrowEventHandler());
+      ServerTickEvents.START_WORLD_TICK.register(this::onWorldTick);
+      ServerLivingEntityEvents.ALLOW_DAMAGE.register(this::onPlayerDamage);
+      ServerEntityCombatEvents.AFTER_KILLED_OTHER_ENTITY.register(this::onPlayerDeath);
+
+      ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+         PlayerArmorState persistentState = PlayerArmorState.getServerState(GlobalServerWorld.getServer());
+         UUID playerId = handler.player.getUuid();
+         //loadPlayerData(handler.player);
+         LOGGER.info("\nlogin:\n" + playerId + "\n**********");
+         if (persistentState.playerOfflineTimes.containsKey(playerId)) {
+            LOGGER.info("last logout time:" + persistentState.playerOfflineTimes.get(playerId));
+             long offlineTime = GlobalServerWorld.getTime() - persistentState.playerOfflineTimes.remove(playerId);
+             //long currentTime = server.getWorld(handler.player.getWorld().getRegistryKey()).getTime();
+             LOGGER.info("total offline time:" + offlineTime);
+             
+             if (persistentState.playerArmorTimers.containsKey(playerId)) {
+                 LOGGER.info("last timer:" + persistentState.playerArmorTimers.get(playerId));
+                 persistentState.playerArmorTimers.put(playerId, persistentState.playerArmorTimers.get(playerId) + TimeUnit.MILLISECONDS.toMinutes(offlineTime));
+                 LOGGER.info("new timer:" + persistentState.playerArmorTimers.get(playerId));
+             }
+         }
+     });
+ 
+     ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+         PlayerArmorState persistentState = PlayerArmorState.getServerState(GlobalServerWorld.getServer());
+         //savePlayerData(handler.player);
+         UUID playerId = handler.player.getUuid();
+         persistentState.playerOfflineTimes.put(playerId, GlobalServerWorld.getTime());
+         persistentState.markDirty();
+         LOGGER.info("\nlogout:\n" + playerId + "\n**********");
+         LOGGER.info("\nlogged out with time:" + persistentState.playerOfflineTimes.get(playerId));
+     });
       //ServerWorldEvents.UNLOAD.register(this::onWorldUnload);
   }
+  
 
   private void onWorldLoad(MinecraftServer server, ServerWorld world) {
       GlobalServerWorld = world;
@@ -122,14 +171,107 @@ public class PlotArmorMod implements ModInitializer {
       PlayerBlockBreakEvents.AFTER.register(this::onBlockBroken);
   }
 
+  private void onWorldTick(ServerWorld world) {
+        PlayerArmorState persistentState = PlayerArmorState.getServerState(GlobalServerWorld.getServer());
+        long currentTime = world.getTime();
+        for (ServerPlayerEntity player : world.getPlayers()) {
+            UUID playerId = player.getUuid();
+
+            if (player.getCommandTags().contains("EverDrunkChargedBrew")) {
+                //LOGGER.info("ignoring debuff counter" + playerId);
+                continue;
+            }
+
+            if (persistentState.playerArmorTimers.containsKey(playerId)) {
+                long lastDebuffTime = persistentState.playerArmorTimers.get(playerId);
+                long interval = INITIAL_DEBUFF_INTERVAL * (1L << persistentState.playerHealthDebuffs.getOrDefault(playerId, 0));
+
+                if (currentTime - lastDebuffTime >= interval) {
+                    applyDebuffs(player);
+                    persistentState.playerArmorTimers.put(playerId, currentTime);
+                }
+            }
+
+            if (isWearingFullChainmail(player)) {
+                if (!persistentState.playerArmorTimers.containsKey(playerId)) {
+                    LOGGER.info("adding timer for:" + playerId);
+                    persistentState.playerArmorTimers.put(playerId, currentTime);
+                }
+            }
+        }
+    }
+
+    private boolean onPlayerDamage(LivingEntity entity, DamageSource source, float amount) {
+        if (entity instanceof ServerPlayerEntity player) {
+            if (isWearingFullChainmail(player)) {
+                transferDamageToArmor(player, amount);
+                LOGGER.info("ignoring damage");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void transferDamageToArmor(ServerPlayerEntity player, float damage) {
+        for (ItemStack armorItem : player.getArmorItems()) {
+            if (armorItem.isDamageable()) {
+                int armorDamage = MathHelper.ceil(damage);
+                armorItem.damage(armorDamage, player, EquipmentSlot.HEAD);
+                armorItem.damage(armorDamage, player, EquipmentSlot.CHEST);
+                armorItem.damage(armorDamage, player, EquipmentSlot.LEGS);
+                armorItem.damage(armorDamage, player, EquipmentSlot.FEET);
+                break;
+            }
+        }
+    }
+
+    private void onPlayerDeath(ServerWorld world, Entity killer, LivingEntity entity) {
+      if (entity instanceof PlayerEntity) {
+         PlayerEntity player = (PlayerEntity) entity;
+         UUID playerId = player.getUuid();
+         if (!player.getCommandTags().contains("EverDrunkChargedBrew")) {
+            PlayerArmorState persistentState = PlayerArmorState.getServerState(GlobalServerWorld.getServer());
+            if (persistentState.playerHealthDebuffs.containsKey(playerId)) {
+               applyDebuffs((ServerPlayerEntity) player);
+            } else {
+               persistentState.playerArmorTimers.put(playerId, world.getTime());
+               persistentState.playerHealthDebuffs.put(playerId, 0);
+            }
+         }
+      }
+  }
+
+    private void applyDebuffs(ServerPlayerEntity player) {
+        PlayerArmorState persistentState = PlayerArmorState.getServerState(GlobalServerWorld.getServer());
+        UUID playerId = player.getUuid();
+        int debuffLevel = persistentState.playerHealthDebuffs.getOrDefault(playerId, 0) + 1;
+        LOGGER.info("debuffs time, lvl:" + debuffLevel);
+        player.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH).setBaseValue(Math.max(2.0, player.getAttributeBaseValue(EntityAttributes.GENERIC_MAX_HEALTH) - 2.0));
+        if (debuffLevel % 3 == 0) {
+            player.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, Integer.MAX_VALUE, (debuffLevel / 3) - 1, true, false));
+        }
+        if (debuffLevel % 4 == 0) {
+            player.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, Integer.MAX_VALUE, (debuffLevel / 4) - 1, true, false));
+        }
+
+        persistentState.playerHealthDebuffs.put(playerId, debuffLevel);
+    }
+
+    private boolean isWearingFullChainmail(PlayerEntity player) {
+        return player.getEquippedStack(EquipmentSlot.HEAD).getItem() == Items.CHAINMAIL_HELMET &&
+               player.getEquippedStack(EquipmentSlot.CHEST).getItem() == Items.CHAINMAIL_CHESTPLATE &&
+               player.getEquippedStack(EquipmentSlot.LEGS).getItem() == Items.CHAINMAIL_LEGGINGS &&
+               player.getEquippedStack(EquipmentSlot.FEET).getItem() == Items.CHAINMAIL_BOOTS;
+    }
+
    private ActionResult onBlockPlaced(PlayerEntity player, World world, Hand hand, BlockHitResult hitResult) {
       updateBlockCheckState(world);
       return ActionResult.PASS;
-  }
+   }
 
-  private void onBlockBroken(World world, PlayerEntity player, BlockPos pos, BlockState state, BlockEntity entity) {
+   private void onBlockBroken(World world, PlayerEntity player, BlockPos pos, BlockState state, BlockEntity entity) {
       updateBlockCheckState(world);
-  }
+   }
 
    private void updateBlockCheckState(World world) {
       PlotArmorState state = PlotArmorState.getServerState(GlobalServerWorld.getServer());

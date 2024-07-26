@@ -66,7 +66,7 @@ public class PlotArmorState extends PersistentState {
         // The first time the following 'getOrCreate' function is called, it creates a brand new 'PlotArmorState' and
         // stores it inside the 'PersistentStateManager'. The subsequent calls to 'getOrCreate' pass in the saved
         // 'PlotArmorState' NBT on disk to our function 'PlotArmorState::createFromNbt'.
-        PlotArmorState state = persistentStateManager.getOrCreate(type, "plotarmor");
+        PlotArmorState state = persistentStateManager.getOrCreate(type, "plotarmorstate");
  
         // If state is not marked dirty, when Minecraft closes, 'writeNbt' won't be called and therefore nothing will be saved.
         // Technically it's 'cleaner' if you only mark state as dirty when there was actually a change, but the vast majority

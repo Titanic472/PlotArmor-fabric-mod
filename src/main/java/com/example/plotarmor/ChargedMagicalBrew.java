@@ -1,6 +1,7 @@
 package com.example.plotarmor;
 
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.PotionItem;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -25,6 +26,12 @@ public class ChargedMagicalBrew extends PotionItem {
             if(player.getCommandTags().contains("EverDrunkChargedBrew")){
                 LOGGER.info("\n*\n*\nEverDrunkChargedBrew is now true\n*\n*");
             }
+            player.clearStatusEffects();
+            player.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH).setBaseValue(20.0);
+            
+            PlayerArmorState persistentState = PlayerArmorState.getServerState(PlotArmorMod.GlobalServerWorld.getServer());
+            persistentState.playerArmorTimers.remove(player.getUuid());
+            persistentState.playerHealthDebuffs.remove(player.getUuid());
             
         }
         return itemstack;
