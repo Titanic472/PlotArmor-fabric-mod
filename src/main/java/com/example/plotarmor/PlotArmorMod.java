@@ -74,7 +74,7 @@ public class PlotArmorMod implements ModInitializer {
 
    public static ServerWorld GlobalServerWorld = null;
 
-   private static final long INITIAL_DEBUFF_INTERVAL = 20 * 60 * 20;//minutes to minecraft ticks
+   private static final long INITIAL_DEBUFF_INTERVAL = 30 * 60 * 20;//minutes to minecraft ticks
    @Override
    public void onInitialize() {
       LOGGER.info("LOADING Plot Armor");
