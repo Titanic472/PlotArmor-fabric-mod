@@ -1,0 +1,18 @@
+{
+    "grosza_daj_wiedzminowi": {
+      "sounds": [
+        {
+        "name": "plotarmor:grosza_daj_wiedzminowi",
+        "stream": true
+        }
+      ]
+    },
+    "kotlok_dej_hekserowi": {
+      "sounds": [
+        {
+        "name": "plotarmor:kotlok_dej_hekserowi",
+        "stream": true
+        }
+      ]
+    }
+  }

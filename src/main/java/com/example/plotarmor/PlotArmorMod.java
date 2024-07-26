@@ -23,9 +23,6 @@ import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.Items;
-import net.minecraft.item.PotionItem;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.Potions;
@@ -38,13 +35,16 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraft.registry.*;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.*;
+import net.minecraft.item.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -67,6 +67,14 @@ public class PlotArmorMod implements ModInitializer {
    public static final PotionItem MAGICAL_BREW =  new PotionItem(new Item.Settings().rarity(Rarity.RARE).fireproof().maxCount(1));
    public static final PotionItem CHARGED_MAGICAL_BREW = new ChargedMagicalBrew(new Item.Settings().rarity(Rarity.EPIC).fireproof().maxCount(1));
 
+   public static final SoundEvent GROSZA_DAJ_WIEDZMINOWI = registerSound("grosza_daj_wiedzminowi");
+   public static final SoundEvent KOTLOK_DEJ_HEKSEROWI = registerSound("kotlok_dej_hekserowi");
+   public static final RegistryEntry.Reference<SoundEvent> GROSZA_DAJ_WIEDZMINOWI_REF = Registry.registerReference(Registries.SOUND_EVENT, GROSZA_DAJ_WIEDZMINOWI.getId(), GROSZA_DAJ_WIEDZMINOWI);
+   public static final RegistryEntry.Reference<SoundEvent> KOTLOK_DEJ_HEKSEROWI_REF = Registry.registerReference(Registries.SOUND_EVENT, KOTLOK_DEJ_HEKSEROWI.getId(), KOTLOK_DEJ_HEKSEROWI);;
+
+   public static final Item GROSZA_DAJ_WIEDZMINOWI_MUSIC_DISC = new CustomMusicDiscItem(15, GROSZA_DAJ_WIEDZMINOWI, new Item.Settings().maxCount(1).rarity(Rarity.RARE).jukeboxPlayable(PlotArmorMusicDiscs.GROSZA_DAJ_WIEDZMINOWI_JUKEBOX));
+   public static final Item KOTLOK_DEJ_HEKSEROWI_MUSIC_DISC = new CustomMusicDiscItem(15, KOTLOK_DEJ_HEKSEROWI, new Item.Settings().maxCount(1).rarity(Rarity.RARE).jukeboxPlayable(PlotArmorMusicDiscs.KOTLOK_DEJ_HEKSEROWI_JUKEBOX));
+
    public static ServerWorld GlobalServerWorld = null;
 
    private static final long INITIAL_DEBUFF_INTERVAL = 20 * 60 * 20;//minutes to minecraft ticks
@@ -74,10 +82,13 @@ public class PlotArmorMod implements ModInitializer {
    @Override
    public void onInitialize() {
       LOGGER.info("LOADING Plot Armor");
+
       Registry.register(Registries.ITEM, Identifier.of("plotarmor", "breeze_bow"), BREEZE_BOW);
       Registry.register(Registries.ITEM, Identifier.of("plotarmor", "packed_blue_ice"), PACKED_BLUE_ICE);
       Registry.register(Registries.ITEM, Identifier.of("plotarmor", "magical_brew"), MAGICAL_BREW);
       Registry.register(Registries.ITEM, Identifier.of("plotarmor", "charged_magical_brew"), CHARGED_MAGICAL_BREW);
+      Registry.register(Registries.ITEM, Identifier.of("plotarmor", "grosza_daj_wiedzminowi_music_disc"), GROSZA_DAJ_WIEDZMINOWI_MUSIC_DISC);
+      Registry.register(Registries.ITEM, Identifier.of("plotarmor", "kotlok_dej_hekserowi_music_disc"), KOTLOK_DEJ_HEKSEROWI_MUSIC_DISC);
 
       
       Registry.register(Registries.POTION, Identifier.of("plotarmor", "essence_of_frost"), ESSENCE_OF_FROST);
@@ -130,6 +141,7 @@ public class PlotArmorMod implements ModInitializer {
                return 1;
             }))));
       });
+
       ServerWorldEvents.LOAD.register(this::onWorldLoad);
       ServerTickEvents.END_WORLD_TICK.register(new ItemThrowEventHandler());
       ServerTickEvents.START_WORLD_TICK.register(this::onWorldTick);
@@ -167,7 +179,13 @@ public class PlotArmorMod implements ModInitializer {
      LOGGER.info("LOADED Plot Armor");
       //ServerWorldEvents.UNLOAD.register(this::onWorldUnload);
   }
-  
+
+  private static SoundEvent registerSound(String id) {
+    Identifier identifier = Identifier.of("plotarmor", id);
+    SoundEvent event = Registry.register(Registries.SOUND_EVENT, identifier, SoundEvent.of(identifier));
+    //Registry.registerReference(Registries.SOUND_EVENT, event.getId(), event);
+    return event;
+  }
 
   private void onWorldLoad(MinecraftServer server, ServerWorld world) {
       GlobalServerWorld = world;

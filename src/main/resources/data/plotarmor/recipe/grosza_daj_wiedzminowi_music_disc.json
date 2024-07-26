@@ -1,0 +1,16 @@
+{
+    "type": "minecraft:crafting_shapeless",
+    "ingredients": [
+    {
+      "item": "minecraft:gold_nugget"
+    },
+    {
+      "item": "minecraft:flint"
+    }
+    ],
+    "result": {
+      "id": "plotarmor:grosza_daj_wiedzminowi_music_disc",
+      "count": 1
+    }
+}
+  
