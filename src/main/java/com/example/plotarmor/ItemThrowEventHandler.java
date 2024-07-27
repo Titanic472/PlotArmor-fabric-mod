@@ -3,6 +3,7 @@ package com.example.plotarmor;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
@@ -23,6 +24,20 @@ public class ItemThrowEventHandler implements ServerTickEvents.EndWorldTick{
                     ItemStack stack = itemEntity.getStack();
                     if (stack.getItem() == PlotArmorMod.MAGICAL_BREW && state.isCheckBlockMatched()) {
                             itemEntity.setStack(new ItemStack(PlotArmorMod.CHARGED_MAGICAL_BREW));
+                            world.spawnParticles(ParticleTypes.ENCHANTED_HIT, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), 10, 0.5, 0.5, 0.5, 0.1);
+
+                            // Проигрывание звука
+                            world.playSound(null, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, itemEntity.getSoundCategory(), 2.0F, 1.0F);
+                    }
+                }
+            }
+            if (state.getChamberStart() != null && state.getChamberEnd() != null) {
+                BlockPos checkPos1 = state.getChamberStart();
+                BlockPos checkPos2 = state.getChamberEnd();
+                for (ItemEntity itemEntity : world.getEntitiesByClass(ItemEntity.class, new Box(checkPos1.getX(), checkPos1.getY(), checkPos1.getZ(), checkPos2.getX(), checkPos2.getY(), checkPos2.getZ()), e -> true)) {
+                    ItemStack stack = itemEntity.getStack();
+                    if (stack.getItem() == Items.GOLD_INGOT && state.isCheckBlockMatched()) {
+                            itemEntity.setStack(new ItemStack(Items.IRON_INGOT, stack.getCount()));
                             world.spawnParticles(ParticleTypes.ENCHANTED_HIT, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), 10, 0.5, 0.5, 0.5, 0.1);
 
                             // Проигрывание звука

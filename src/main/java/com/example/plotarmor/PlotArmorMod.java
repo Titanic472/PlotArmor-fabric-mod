@@ -217,7 +217,6 @@ public class PlotArmorMod implements ModInitializer {
                     LOGGER.info("adding timer for:" + playerId);
                     //LOGGER.info("Default timer is:" + INITIAL_DEBUFF_INTERVAL);
                     persistentState.playerArmorTimers.put(playerId, currentTime);
-                    player.getWorld().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ENTITY_ELDER_GUARDIAN_CURSE, SoundCategory.PLAYERS, 2.0F, 1.0F);
                 }
             }
         }
@@ -227,8 +226,8 @@ public class PlotArmorMod implements ModInitializer {
         if (entity instanceof ServerPlayerEntity player) {
             if (isWearingFullChainmail(player)) {
                 long currentTime = GlobalServerWorld.getTime();
-                if(!iframes.containsKey(player.getUuid()) || iframes.get(player.getUuid())+460 <= currentTime || iframes.get(player.getUuid())+60 >= currentTime){
-                    transferDamageToArmor(player, amount);
+                if(!iframes.containsKey(player.getUuid()) || iframes.get(player.getUuid())+600 <= currentTime || (iframes.get(player.getUuid())+100  >= currentTime && !player.getCommandTags().contains("EverDrunkChargedBrew")) || (iframes.get(player.getUuid())+20  >= currentTime && player.getCommandTags().contains("EverDrunkChargedBrew"))){
+                    if(!iframes.containsKey(player.getUuid()) || iframes.get(player.getUuid())+600 <= currentTime) transferDamageToArmor(player, amount);
                     return false;
                 }
                 else return true;
@@ -239,18 +238,21 @@ public class PlotArmorMod implements ModInitializer {
 
     private void transferDamageToArmor(ServerPlayerEntity player, float damage) {
         long currentTime = GlobalServerWorld.getTime();
-        int armorDamage = Math.max(MathHelper.ceil(damage/4F), 0);
+        float Divider = 1F;
+        if(player.getCommandTags().contains("EverDrunkChargedBrew")) Divider = 4F;
+        int armorDamage = Math.max(MathHelper.ceil(damage/Divider), 0);
         player.getInventory().getArmorStack(3).damage(armorDamage, player, EquipmentSlot.HEAD);
         player.getInventory().getArmorStack(2).damage(armorDamage, player, EquipmentSlot.CHEST);
         player.getInventory().getArmorStack(1).damage(armorDamage, player, EquipmentSlot.LEGS);
         player.getInventory().getArmorStack(0).damage(armorDamage, player, EquipmentSlot.FEET);
         //LOGGER.info("damaging armor, time: " + currentTime + " last damage time: " + iframes.get(player.getUuid()));
-        if(!iframes.containsKey(player.getUuid()) || iframes.get(player.getUuid())+460 <= currentTime)iframes.put(player.getUuid(), currentTime); 
+        iframes.put(player.getUuid(), currentTime); 
     }
 
     private void onPlayerDeath(ServerWorld world, Entity killer, LivingEntity entity) {
       if (entity instanceof PlayerEntity) {
          PlayerEntity player = (PlayerEntity) entity;
+         iframes.remove(player.getUuid()); 
          UUID playerId = player.getUuid();
          if (!player.getCommandTags().contains("EverDrunkChargedBrew")) {
             PlayerArmorState persistentState = PlayerArmorState.getServerState(GlobalServerWorld.getServer());
@@ -275,7 +277,7 @@ public class PlotArmorMod implements ModInitializer {
             player.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, Integer.MAX_VALUE, (debuffLevel / 4) - 1, true, false));
         }
 
-        player.getWorld().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ENTITY_WITHER_HURT, SoundCategory.PLAYERS, 2.0F, 1.0F);
+        player.getWorld().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ENTITY_ELDER_GUARDIAN_CURSE, SoundCategory.PLAYERS, 2.0F, 1.0F);
         player.getServerWorld().spawnParticles(ParticleTypes.FALLING_OBSIDIAN_TEAR, player.getX(), player.getY()+1, player.getZ(), 150, 0.75, 1, 0.75, 0.1);
 
         persistentState.playerHealthDebuffs.put(playerId, debuffLevel);
