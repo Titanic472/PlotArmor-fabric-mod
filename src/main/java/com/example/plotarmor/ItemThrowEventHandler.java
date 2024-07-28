@@ -17,7 +17,7 @@ public class ItemThrowEventHandler implements ServerTickEvents.EndWorldTick{
     public void onEndTick(ServerWorld world) {
         if (world.getTime() % CHECK_INTERVAL == 0) {
             PlotArmorState state = PlotArmorState.getServerState(world.getServer());
-            if (state.getChamberStart() != null && state.getChamberEnd() != null) {
+            if (state.getChamberStart() != null && state.getChamberEnd() != null && state.isCheckBlockMatched()) {
                 BlockPos checkPos1 = state.getChamberStart();
                 BlockPos checkPos2 = state.getChamberEnd();
                 for (ItemEntity itemEntity : world.getEntitiesByClass(ItemEntity.class, new Box(checkPos1.getX(), checkPos1.getY(), checkPos1.getZ(), checkPos2.getX(), checkPos2.getY(), checkPos2.getZ()), e -> true)) {
@@ -29,20 +29,20 @@ public class ItemThrowEventHandler implements ServerTickEvents.EndWorldTick{
                             // Проигрывание звука
                             world.playSound(null, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, itemEntity.getSoundCategory(), 2.0F, 1.0F);
                     }
-                }
-            }
-            if (state.getChamberStart() != null && state.getChamberEnd() != null) {
-                BlockPos checkPos1 = state.getChamberStart();
-                BlockPos checkPos2 = state.getChamberEnd();
-                for (ItemEntity itemEntity : world.getEntitiesByClass(ItemEntity.class, new Box(checkPos1.getX(), checkPos1.getY(), checkPos1.getZ(), checkPos2.getX(), checkPos2.getY(), checkPos2.getZ()), e -> true)) {
-                    ItemStack stack = itemEntity.getStack();
-                    if (stack.getItem() == Items.GOLD_INGOT && state.isCheckBlockMatched()) {
-                            itemEntity.setStack(new ItemStack(Items.IRON_INGOT, stack.getCount()));
-                            world.spawnParticles(ParticleTypes.ENCHANTED_HIT, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), 10, 0.5, 0.5, 0.5, 0.1);
+                    if (stack.getItem() == Items.GOLD_INGOT) {
+                        itemEntity.setStack(new ItemStack(Items.IRON_INGOT, stack.getCount()));
+                        world.spawnParticles(ParticleTypes.ENCHANTED_HIT, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), 10, 0.5, 0.5, 0.5, 0.1);
 
-                            // Проигрывание звука
-                            world.playSound(null, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, itemEntity.getSoundCategory(), 2.0F, 1.0F);
+                        // Проигрывание звука
+                        world.playSound(null, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, itemEntity.getSoundCategory(), 2.0F, 1.0F);
                     }
+                    if (stack.getItem() == Items.BONE && stack.getCount()>=8) {
+                        itemEntity.setStack(new ItemStack(Items.SKELETON_SKULL, stack.getCount()/8));
+                        world.spawnParticles(ParticleTypes.ENCHANTED_HIT, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), 10, 0.5, 0.5, 0.5, 0.1);
+
+                        // Проигрывание звука
+                        world.playSound(null, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, itemEntity.getSoundCategory(), 2.0F, 1.0F);
+                }
                 }
             }
         }

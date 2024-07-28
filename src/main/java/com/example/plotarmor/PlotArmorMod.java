@@ -238,7 +238,7 @@ public class PlotArmorMod implements ModInitializer {
 
     private void transferDamageToArmor(ServerPlayerEntity player, float damage) {
         long currentTime = GlobalServerWorld.getTime();
-        float Divider = 1F;
+        float Divider = 2F;
         if(player.getCommandTags().contains("EverDrunkChargedBrew")) Divider = 4F;
         int armorDamage = Math.max(MathHelper.ceil(damage/Divider), 0);
         player.getInventory().getArmorStack(3).damage(armorDamage, player, EquipmentSlot.HEAD);
