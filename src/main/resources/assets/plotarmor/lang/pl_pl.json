@@ -1,0 +1,15 @@
+{
+    "item.plotarmor.breeze_bow": "Wietrzny łuk",
+    "item.plotarmor.packed_blue_ice": "Skompresowany niebieski lód",
+    "item.plotarmor.magical_brew.effect.empty": "Magiczny Wywar",
+    "item.plotarmor.charged_magical_brew.effect.empty": "Naładowany Magiczny Wywar",
+    "item.minecraft.potion.effect.essence_of_frost": "Esencja Mrozu",
+    "item.minecraft.potion.effect.essence_of_the_sea": "Esencja Morza",
+    "item.minecraft.potion.effect.essence_of_depths": "Esencja Głębin",
+    "item.minecraft.potion.effect.essence_of_wealth": "Esencja Bogactwa",
+    "commands.plotarmor.setcheck.success": "Check block position set to %s for block type %s",
+    "commands.plotarmor.setchamber.success": "Chamber coordinates set from %s to %s",
+    "item.plotarmor.kotlok_dej_hekserowi_music_disc": "Kotlok dej Hekserowi",
+    "item.plotarmor.grosza_daj_wiedzminowi_music_disc": "Grosza daj Wiedźminowi"
+}
+  
