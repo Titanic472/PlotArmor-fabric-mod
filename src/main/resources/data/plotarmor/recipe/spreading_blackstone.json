@@ -1,0 +1,13 @@
+{
+    "type": "minecraft:crafting_shapeless",
+    "ingredients": [
+    {
+      "item": "plotarmor:spreading_blackstone"
+    }
+    ],
+    "result": {
+      "id": "minecraft:blackstone",
+      "count": 1
+    }
+}
+  

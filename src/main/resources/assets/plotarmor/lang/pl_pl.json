@@ -10,6 +10,7 @@
     "commands.plotarmor.setcheck.success": "Check block position set to %s for block type %s",
     "commands.plotarmor.setchamber.success": "Chamber coordinates set from %s to %s",
     "item.plotarmor.kotlok_dej_hekserowi_music_disc": "Kotlok dej Hekserowi",
-    "item.plotarmor.grosza_daj_wiedzminowi_music_disc": "Grosza daj Wiedźminowi"
+    "item.plotarmor.grosza_daj_wiedzminowi_music_disc": "Grosza daj Wiedźminowi",
+    "block.plotarmor.spreading_blackstone": "Przeklęty kamień"
 }
   

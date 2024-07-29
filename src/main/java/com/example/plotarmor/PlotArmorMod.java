@@ -10,6 +10,8 @@ import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.registry.FabricBrewingRecipeRegistryBuilder;
+import net.minecraft.block.AbstractBlock;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.command.argument.BlockPosArgumentType;
@@ -57,6 +59,8 @@ public class PlotArmorMod implements ModInitializer {
 
    public final Map<UUID, Long> iframes = new HashMap<>();
 
+   public static final Block SPREADING_BLACKSTONE = new SpreadingBlackstone(AbstractBlock.Settings.create().strength(1.5f, 6.0f).ticksRandomly());
+
    public static final Item BREEZE_BOW = new BreezeBowItem(new Item.Settings().maxCount(1).rarity(Rarity.EPIC).fireproof().maxDamage(96));
    public static final Item PACKED_BLUE_ICE = new Item(new Item.Settings().rarity(Rarity.UNCOMMON));
    public static final Potion ESSENCE_OF_FROST = new Potion(new StatusEffectInstance(StatusEffects.SLOWNESS, 72000, 4), new StatusEffectInstance(StatusEffects.MINING_FATIGUE, 72000, 4));// Registry.register(Registries.POTION, );
@@ -78,6 +82,9 @@ public class PlotArmorMod implements ModInitializer {
    @Override
    public void onInitialize() {
       LOGGER.info("LOADING Plot Armor");
+
+      Registry.register(Registries.BLOCK, Identifier.of("plotarmor", "spreading_blackstone"), SPREADING_BLACKSTONE);
+      Registry.register(Registries.ITEM, Identifier.of("plotarmor", "spreading_blackstone"), new BlockItem(SPREADING_BLACKSTONE, new Item.Settings()));
 
       Registry.register(Registries.ITEM, Identifier.of("plotarmor", "breeze_bow"), BREEZE_BOW);
       Registry.register(Registries.ITEM, Identifier.of("plotarmor", "packed_blue_ice"), PACKED_BLUE_ICE);

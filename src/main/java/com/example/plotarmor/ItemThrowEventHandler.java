@@ -42,7 +42,14 @@ public class ItemThrowEventHandler implements ServerTickEvents.EndWorldTick{
 
                         // Проигрывание звука
                         world.playSound(null, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, itemEntity.getSoundCategory(), 2.0F, 1.0F);
-                }
+                    }
+                    if (stack.getItem() == Items.BLACKSTONE) {
+                        itemEntity.setStack(new ItemStack(PlotArmorMod.SPREADING_BLACKSTONE, stack.getCount()));
+                        world.spawnParticles(ParticleTypes.ENCHANTED_HIT, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), 10, 0.5, 0.5, 0.5, 0.1);
+
+                        // Проигрывание звука
+                        world.playSound(null, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, itemEntity.getSoundCategory(), 2.0F, 1.0F);
+                    }
                 }
             }
         }
