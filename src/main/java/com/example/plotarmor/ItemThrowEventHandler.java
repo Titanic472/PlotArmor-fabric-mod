@@ -22,12 +22,13 @@ public class ItemThrowEventHandler implements ServerTickEvents.EndWorldTick{
                 BlockPos checkPos2 = state.getChamberEnd();
                 for (ItemEntity itemEntity : world.getEntitiesByClass(ItemEntity.class, new Box(checkPos1.getX(), checkPos1.getY(), checkPos1.getZ(), checkPos2.getX(), checkPos2.getY(), checkPos2.getZ()), e -> true)) {
                     ItemStack stack = itemEntity.getStack();
-                    if (stack.getItem() == PlotArmorMod.MAGICAL_BREW && state.isCheckBlockMatched()) {
-                            itemEntity.setStack(new ItemStack(PlotArmorMod.CHARGED_MAGICAL_BREW));
-                            world.spawnParticles(ParticleTypes.ENCHANTED_HIT, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), 10, 0.5, 0.5, 0.5, 0.1);
+                    if (stack.getItem() == PlotArmorMod.MAGICAL_BREW) {
+                        itemEntity.setStack(new ItemStack(PlotArmorMod.CHARGED_MAGICAL_BREW));
+                        world.spawnParticles(ParticleTypes.ENCHANTED_HIT, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), 10, 0.5, 0.5, 0.5, 0.1);
 
-                            // Проигрывание звука
-                            world.playSound(null, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, itemEntity.getSoundCategory(), 2.0F, 1.0F);
+                        // Проигрывание звука
+                        world.playSound(null, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, itemEntity.getSoundCategory(), 2.0F, 1.0F);
+                        for(int i = 1; i<=8;i+=1) SpreadingBlackstone.spreadAll(world);
                     }
                     if (stack.getItem() == Items.GOLD_INGOT) {
                         itemEntity.setStack(new ItemStack(Items.IRON_INGOT, stack.getCount()));
@@ -35,6 +36,7 @@ public class ItemThrowEventHandler implements ServerTickEvents.EndWorldTick{
 
                         // Проигрывание звука
                         world.playSound(null, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, itemEntity.getSoundCategory(), 2.0F, 1.0F);
+                        for(int i = 1; i<=stack.getCount();i*=2) SpreadingBlackstone.spreadAll(world);
                     }
                     if (stack.getItem() == Items.BONE && stack.getCount()>=8) {
                         itemEntity.setStack(new ItemStack(Items.SKELETON_SKULL, stack.getCount()/8));
@@ -42,6 +44,7 @@ public class ItemThrowEventHandler implements ServerTickEvents.EndWorldTick{
 
                         // Проигрывание звука
                         world.playSound(null, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, itemEntity.getSoundCategory(), 2.0F, 1.0F);
+                        for(int i = 8; i<=stack.getCount();i*=2) SpreadingBlackstone.spreadAll(world);
                     }
                     if (stack.getItem() == Items.BLACKSTONE) {
                         itemEntity.setStack(new ItemStack(PlotArmorMod.SPREADING_BLACKSTONE, stack.getCount()));

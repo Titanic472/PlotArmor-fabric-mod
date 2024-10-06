@@ -13,6 +13,11 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.PersistentStateManager;
 import net.minecraft.world.World;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.LongStream;
+
 public class PlotArmorState extends PersistentState {
     public static final String ID = "plotarmor_state";
 
@@ -21,6 +26,7 @@ public class PlotArmorState extends PersistentState {
     private BlockPos chamberEnd;
     private Block checkBlockType;
     private boolean checkBlockMatched;
+    private List<BlockPos> blackstonePositions;
 
     public PlotArmorState() {
         // Default values
@@ -29,6 +35,7 @@ public class PlotArmorState extends PersistentState {
         this.chamberStart = null;
         this.chamberEnd = null;
         this.checkBlockMatched = false;
+        this.blackstonePositions = new ArrayList<>();
     }
 
     public static PlotArmorState createFromNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
@@ -44,6 +51,9 @@ public class PlotArmorState extends PersistentState {
         }
         if (tag.contains("chamberEnd")) {
             state.chamberEnd = BlockPos.fromLong(tag.getLong("chamberEnd"));
+        }
+        if(tag.contains("blackstonePositions")){
+            state.blackstonePositions = longArrayToBlockPosList(tag.getLongArray("blackstonePositions"));
         }
         state.checkBlockMatched = tag.getBoolean("checkBlockMatched");
         return state;
@@ -92,11 +102,41 @@ public class PlotArmorState extends PersistentState {
         if (this.chamberEnd != null) {
             nbt.putLong("chamberEnd", this.chamberEnd.asLong());
         }
+        if (this.blackstonePositions != null) {
+            nbt.putLongArray("blackstonePositions", blockPosListToLongList(blackstonePositions));
+        }
         nbt.putBoolean("checkBlockMatched", this.checkBlockMatched);
         return nbt;
     }
 
+    public static List<Long> blockPosListToLongList(List<BlockPos> blockPosList) {
+        return blockPosList.stream()
+                           .map(BlockPos::asLong) // Convert each BlockPos to a Long
+                           .collect(Collectors.toList());
+    }
+
+    public static List<BlockPos> longArrayToBlockPosList(long[] longArray) {
+        return LongStream.of(longArray)  // Stream the long[] array
+                         .mapToObj(BlockPos::fromLong) // Convert each long to BlockPos
+                         .collect(Collectors.toList()); // Collect to a List<BlockPos>
+    }
+
     // Getters and Setters
+    public List<BlockPos> getBlackstonePositions() {
+        return new ArrayList<>(blackstonePositions);  // Return a copy of the list to avoid concurrent modifications
+    }
+
+    public void addBlackstone(BlockPos pos) {
+        this.blackstonePositions.add(pos);
+        markDirty();
+    }
+
+    // Remove block position from the list
+    public void removeBlackstone(BlockPos pos) {
+        this.blackstonePositions.remove(pos);
+        markDirty();
+    }
+
     public BlockPos getCheckBlockPos() {
         return checkBlockPos;
     }

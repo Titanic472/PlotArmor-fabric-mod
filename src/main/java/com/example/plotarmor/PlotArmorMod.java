@@ -17,6 +17,7 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.command.argument.BlockPosArgumentType;
 import net.minecraft.command.argument.BlockStateArgument;
 import net.minecraft.command.argument.BlockStateArgumentType;
+import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
@@ -47,6 +48,7 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.*;
 import net.minecraft.item.*;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -144,6 +146,22 @@ public class PlotArmorMod implements ModInitializer {
                context.getSource().sendFeedback(() -> Text.literal("Chamber coordinates set from " + state.getChamberStart() + " to " + state.getChamberEnd()), true);
                return 1;
             }))));
+            dispatcher.register(CommandManager.literal("setcurse")
+            .then(CommandManager.argument("target", EntityArgumentType.players())
+            .executes(context -> {
+                Collection<ServerPlayerEntity> targets = EntityArgumentType.getPlayers(context, "target");
+                for (ServerPlayerEntity target : targets) {
+                    addCurseTimer(target);
+                    context.getSource().sendFeedback(() -> Text.literal("PlotArmor SC used!"), true);
+                }
+                return 1;
+            })));
+            dispatcher.register(CommandManager.literal("getCursedBlocksCount")
+             .executes(context -> {
+                PlotArmorState modState = PlotArmorState.getServerState(GlobalServerWorld.getServer());
+                context.getSource().sendFeedback(() -> Text.literal("current cursed stone count: " + modState.getBlackstonePositions().size()), true);
+                return 1;
+            }));
       });
 
       ServerWorldEvents.LOAD.register(this::onWorldLoad);
@@ -181,7 +199,25 @@ public class PlotArmorMod implements ModInitializer {
          LOGGER.info("\nlogged out with time:" + persistentState.playerOfflineTimes.get(playerId));
      });
      LOGGER.info("LOADED Plot Armor");
+     //PlotArmorState modState = PlotArmorState.getServerState(GlobalServerWorld.getServer());
+     //LOGGER.info("current cursed stone count: " + modState.getBlackstonePositions().size());
       //ServerWorldEvents.UNLOAD.register(this::onWorldUnload);
+  }
+
+  private void addCurseTimer(ServerPlayerEntity player) {
+    PlayerArmorState persistentState = PlayerArmorState.getServerState(GlobalServerWorld.getServer());
+    UUID playerId = player.getUuid();
+    long currentTime = GlobalServerWorld.getTime();
+
+    if (!player.getCommandTags().contains("EverDrunkChargedBrew")) {
+        if (!persistentState.playerArmorTimers.containsKey(playerId)) {
+            LOGGER.info("adding timer for:" + playerId);
+            //LOGGER.info("Default timer is:" + INITIAL_DEBUFF_INTERVAL);
+            persistentState.playerArmorTimers.put(playerId, currentTime);
+            player.getWorld().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ENTITY_ELDER_GUARDIAN_CURSE, SoundCategory.PLAYERS, 2.0F, 1.0F);
+            player.getServerWorld().spawnParticles(ParticleTypes.FALLING_OBSIDIAN_TEAR, player.getX(), player.getY()+1, player.getZ(), 150, 0.75, 1, 0.75, 0.1);
+        }
+    }
   }
 
   private static SoundEvent registerSound(String id) {
