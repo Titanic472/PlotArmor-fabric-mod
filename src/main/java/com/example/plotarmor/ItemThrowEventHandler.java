@@ -28,10 +28,18 @@ public class ItemThrowEventHandler implements ServerTickEvents.EndWorldTick{
 
                         // Проигрывание звука
                         world.playSound(null, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, itemEntity.getSoundCategory(), 2.0F, 1.0F);
-                        for(int i = 1; i<=8;i+=1) SpreadingBlackstone.spreadAll(world);
+                        for(int i = 1; i<=10;i+=1) SpreadingBlackstone.spreadAll(world);
                     }
                     if (stack.getItem() == Items.GOLD_INGOT) {
                         itemEntity.setStack(new ItemStack(Items.IRON_INGOT, stack.getCount()));
+                        world.spawnParticles(ParticleTypes.ENCHANTED_HIT, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), 10, 0.5, 0.5, 0.5, 0.1);
+
+                        // Проигрывание звука
+                        world.playSound(null, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, itemEntity.getSoundCategory(), 2.0F, 1.0F);
+                        for(int i = 1; i<=stack.getCount();i*=2) SpreadingBlackstone.spreadAll(world);
+                    }
+                    if (stack.getItem() == Items.GOLD_BLOCK) {
+                        itemEntity.setStack(new ItemStack(Items.DIAMOND, stack.getCount()));
                         world.spawnParticles(ParticleTypes.ENCHANTED_HIT, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), 10, 0.5, 0.5, 0.5, 0.1);
 
                         // Проигрывание звука

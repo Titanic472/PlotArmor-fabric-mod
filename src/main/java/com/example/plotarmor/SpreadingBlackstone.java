@@ -13,7 +13,7 @@ import net.minecraft.world.World;
 import java.util.List;
 
 public class SpreadingBlackstone extends Block{
-    private static final int SPREAD_CHANCE = 50;
+    private static final int SPREAD_CHANCE = 100;
     boolean forceSpread = false;
 
     public SpreadingBlackstone(Settings settings) {
@@ -80,7 +80,7 @@ public class SpreadingBlackstone extends Block{
     private boolean canSpread(BlockPos pos, ServerWorld world){
         BlockState blockState = world.getBlockState(pos);
         Block block = blockState.getBlock();
-        if(block == Blocks.AIR || block == Blocks.CHEST || block == Blocks.FURNACE || block == Blocks.BLAST_FURNACE || block == Blocks.SMOKER || block == Blocks.WATER || block == Blocks.ENDER_CHEST || block == PlotArmorMod.SPREADING_BLACKSTONE || block == Blocks.DEEPSLATE_TILE_STAIRS || block == Blocks.POLISHED_DEEPSLATE_STAIRS || block == Blocks.SOUL_SAND || block == Blocks.CHISELED_TUFF_BRICKS || block == Blocks.CHISELED_TUFF || block == Blocks.GOLD_BLOCK || block == Blocks.NETHERITE_BLOCK || block == Blocks.LAPIS_BLOCK || block == Blocks.POLISHED_TUFF_SLAB || block == Blocks.CHAIN || block == Blocks.CUT_COPPER_SLAB || block == Blocks.POLISHED_BLACKSTONE_STAIRS || block == Blocks.CRYING_OBSIDIAN)return false;
+        if(block == Blocks.AIR || block == Blocks.CHEST || block == Blocks.BARREL || block == Blocks.SHULKER_BOX  || block == Blocks.FURNACE || block == Blocks.BLAST_FURNACE || block == Blocks.SMOKER || block == Blocks.WATER || block == Blocks.ENDER_CHEST || block == PlotArmorMod.SPREADING_BLACKSTONE || block == Blocks.DEEPSLATE_TILE_STAIRS || block == Blocks.POLISHED_DEEPSLATE_STAIRS || block == Blocks.SOUL_SAND || block == Blocks.CHISELED_TUFF_BRICKS || block == Blocks.CHISELED_TUFF || block == Blocks.GOLD_BLOCK || block == Blocks.NETHERITE_BLOCK || block == Blocks.LAPIS_BLOCK || block == Blocks.POLISHED_TUFF_SLAB || block == Blocks.CHAIN || block == Blocks.CUT_COPPER_SLAB || block == Blocks.POLISHED_BLACKSTONE_STAIRS || block == Blocks.CRYING_OBSIDIAN || block == Blocks.TRIAL_SPAWNER || block == Blocks.VAULT || block == Blocks.REDSTONE_WIRE || block == Blocks.REDSTONE_BLOCK || block == Blocks.STICKY_PISTON || block == Blocks.PISTON)return false;
         else return true;
     }
 
