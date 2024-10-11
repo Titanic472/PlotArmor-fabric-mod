@@ -28,7 +28,7 @@ public class ItemThrowEventHandler implements ServerTickEvents.EndWorldTick{
 
                         // Проигрывание звука
                         world.playSound(null, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, itemEntity.getSoundCategory(), 2.0F, 1.0F);
-                        for(int i = 1; i<=10;i+=1) SpreadingBlackstone.spreadAll(world);
+                        for(int i = 1; i<=7;i+=1) SpreadingBlackstone.spreadAll(world);
                     }
                     if (stack.getItem() == Items.GOLD_INGOT) {
                         itemEntity.setStack(new ItemStack(Items.IRON_INGOT, stack.getCount()));
@@ -36,7 +36,7 @@ public class ItemThrowEventHandler implements ServerTickEvents.EndWorldTick{
 
                         // Проигрывание звука
                         world.playSound(null, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, itemEntity.getSoundCategory(), 2.0F, 1.0F);
-                        for(int i = 1; i<=stack.getCount();i*=2) SpreadingBlackstone.spreadAll(world);
+                        for(int i = 1; i<=stack.getCount();i*=4) SpreadingBlackstone.spreadAll(world);
                     }
                     if (stack.getItem() == Items.GOLD_BLOCK) {
                         itemEntity.setStack(new ItemStack(Items.DIAMOND, stack.getCount()));
@@ -44,7 +44,7 @@ public class ItemThrowEventHandler implements ServerTickEvents.EndWorldTick{
 
                         // Проигрывание звука
                         world.playSound(null, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, itemEntity.getSoundCategory(), 2.0F, 1.0F);
-                        for(int i = 1; i<=stack.getCount();i*=2) SpreadingBlackstone.spreadAll(world);
+                        for(int i = 1; i<=stack.getCount();i*=4) SpreadingBlackstone.spreadAll(world);
                     }
                     if (stack.getItem() == Items.BONE && stack.getCount()>=8) {
                         itemEntity.setStack(new ItemStack(Items.SKELETON_SKULL, stack.getCount()/8));
@@ -52,7 +52,7 @@ public class ItemThrowEventHandler implements ServerTickEvents.EndWorldTick{
 
                         // Проигрывание звука
                         world.playSound(null, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, itemEntity.getSoundCategory(), 2.0F, 1.0F);
-                        for(int i = 8; i<=stack.getCount();i*=2) SpreadingBlackstone.spreadAll(world);
+                        for(int i = 8; i<=stack.getCount();i*=4) SpreadingBlackstone.spreadAll(world);
                     }
                     if (stack.getItem() == Items.BLACKSTONE) {
                         itemEntity.setStack(new ItemStack(PlotArmorMod.SPREADING_BLACKSTONE, stack.getCount()));
@@ -60,6 +60,14 @@ public class ItemThrowEventHandler implements ServerTickEvents.EndWorldTick{
 
                         // Проигрывание звука
                         world.playSound(null, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, itemEntity.getSoundCategory(), 2.0F, 1.0F);
+                    }
+                    if (stack.getItem() == PlotArmorMod.KOTLOK_DEJ_HEKSEROWI_MUSIC_DISC) {
+                        itemEntity.setStack(new ItemStack(Items.AIR, stack.getCount()));
+                        world.spawnParticles(ParticleTypes.ENCHANTED_HIT, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), 10, 0.5, 0.5, 0.5, 0.1);
+
+                        // Проигрывание звука
+                        world.playSound(null, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, itemEntity.getSoundCategory(), 2.0F, 1.0F);
+                        SpreadingBlackstone.unspread(world);
                     }
                 }
             }

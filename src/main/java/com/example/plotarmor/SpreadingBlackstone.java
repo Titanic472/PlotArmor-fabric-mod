@@ -13,8 +13,8 @@ import net.minecraft.world.World;
 import java.util.List;
 
 public class SpreadingBlackstone extends Block{
-    private static final int SPREAD_CHANCE = 100;
-    boolean forceSpread = false;
+    private static final int SPREAD_CHANCE = 150;
+    boolean forceRTS = false;
 
     public SpreadingBlackstone(Settings settings) {
         super(settings);
@@ -43,27 +43,27 @@ public class SpreadingBlackstone extends Block{
         //PlotArmorState modState = PlotArmorState.getServerState(world.getServer());
         //if(modState.isCheckBlockMatched())return;//safety switch
         // Проверка вероятности
-        if (forceSpread || random.nextInt(SPREAD_CHANCE) == 0) {
-            // Проверка наличия соседнего блока воздуха
-            boolean hasAirNeighbor = false;
-            for(int x = -1; x<=1 && !hasAirNeighbor; ++x){
-                for(int y = -1; y<=1 && !hasAirNeighbor; ++y){
-                    for(int z = -1; z<=1; ++z){
-                        if (world.getBlockState(new BlockPos(new Vec3i(pos.getX()+x, pos.getY()+y, pos.getZ()+z))).isAir()) {
-                            hasAirNeighbor = true;
-                            break;
-                        }
-                    }
-                }
-            }
-            for (Direction direction : Direction.values()) {
-                if (world.getBlockState(pos.offset(direction)).isAir()) {
-                    hasAirNeighbor = true;
-                    break;
-                }
-            }
+        if (forceRTS || random.nextInt(SPREAD_CHANCE) == 0) {
+                // Проверка наличия соседнего блока воздуха
+                boolean hasAirNeighbor = HasAirNeighbor(pos, world);
+                // for(int x = -1; x<=1 && !hasAirNeighbor; ++x){
+                //     for(int y = -1; y<=1 && !hasAirNeighbor; ++y){
+                //         for(int z = -1; z<=1; ++z){
+                //             if (world.getBlockState(new BlockPos(new Vec3i(pos.getX()+x, pos.getY()+y, pos.getZ()+z))).isAir()) {
+                //                 hasAirNeighbor = true;
+                //                 break;
+                //             }
+                //         }
+                //     }
+                // }
+                // for (Direction direction : Direction.values()) {
+                //     if (world.getBlockState(pos.offset(direction)).isAir()) {
+                //         hasAirNeighbor = true;
+                //         break;
+                //     }
+                // }
 
-            // Если есть соседний блок воздуха, распространяем блок
+                // Если есть соседний блок воздуха, распространяем блок
             if (hasAirNeighbor) {
                 //PlotArmorMod.LOGGER.info("checking...");
                 if(canSpread(pos.offset(Direction.DOWN), world)) world.setBlockState(pos.offset(Direction.DOWN), this.getDefaultState());
@@ -73,8 +73,23 @@ public class SpreadingBlackstone extends Block{
                 if(canSpread(pos.offset(Direction.EAST), world)) world.setBlockState(pos.offset(Direction.EAST), this.getDefaultState());
                 if(canSpread(pos.offset(Direction.WEST), world)) world.setBlockState(pos.offset(Direction.WEST), this.getDefaultState());
             }
-            forceSpread = false;
+            forceRTS = false;
         }
+    }
+
+    public boolean HasAirNeighbor(BlockPos pos, ServerWorld world){
+        boolean hasAirNeighbor = false;
+        for(int x = -1; x<=1 && !hasAirNeighbor; ++x){
+            for(int y = -1; y<=1 && !hasAirNeighbor; ++y){
+                for(int z = -1; z<=1; ++z){
+                    if (world.getBlockState(new BlockPos(new Vec3i(pos.getX()+x, pos.getY()+y, pos.getZ()+z))).isAir()) {
+                        hasAirNeighbor = true;
+                        break;
+                    }
+                }
+            }
+        }
+        return hasAirNeighbor;
     }
 
     private boolean canSpread(BlockPos pos, ServerWorld world){
@@ -93,8 +108,24 @@ public class SpreadingBlackstone extends Block{
             Block block = blockState.getBlock();
             if (block == PlotArmorMod.SPREADING_BLACKSTONE) {
                 Random random = world.getRandom();
-                ((SpreadingBlackstone) block).forceSpread = true;
+                ((SpreadingBlackstone) block).forceRTS = true;
                 ((SpreadingBlackstone) block).randomTick(blockState, world, pos, random);  // Trigger spreading logic
+            }
+            else {
+                modState.removeBlackstone(pos);
+            }
+        }
+    }
+
+    public static void unspread(ServerWorld world) {
+        PlotArmorState modState = PlotArmorState.getServerState(world.getServer());
+        List<BlockPos> blackstonePositions = modState.getBlackstonePositions(); // Get a copy of the list
+        
+        for (BlockPos pos : blackstonePositions) {
+            BlockState blockState = world.getBlockState(pos);
+            Block block = blockState.getBlock();
+            if (block == PlotArmorMod.SPREADING_BLACKSTONE) {
+                if(!((SpreadingBlackstone) block).HasAirNeighbor(pos, world)) world.setBlockState(pos, Blocks.STONE.getDefaultState());
             }
             else {
                 modState.removeBlackstone(pos);

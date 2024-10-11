@@ -61,7 +61,7 @@ public class PlotArmorMod implements ModInitializer {
 
    public final Map<UUID, Long> iframes = new HashMap<>();
 
-   public static final Block SPREADING_BLACKSTONE = new SpreadingBlackstone(AbstractBlock.Settings.create().strength(1.5f, 6.0f).ticksRandomly());
+   public static final Block SPREADING_BLACKSTONE = new SpreadingBlackstone(AbstractBlock.Settings.create().strength(1.0f, 0.5f).ticksRandomly());
 
    public static final Item BREEZE_BOW = new BreezeBowItem(new Item.Settings().maxCount(1).rarity(Rarity.EPIC).fireproof().maxDamage(96));
    public static final Item PACKED_BLUE_ICE = new Item(new Item.Settings().rarity(Rarity.UNCOMMON));
